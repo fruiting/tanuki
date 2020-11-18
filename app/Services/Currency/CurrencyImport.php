@@ -5,6 +5,7 @@ namespace App\Services\Currency;
 use App\Models\Currency;
 use App\Services\Curl;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use SimpleXMLElement;
 
 /**
@@ -37,21 +38,23 @@ class CurrencyImport
      */
     public static function import(string $date): void
     {
-        try {
-            $response = (new Curl())->makeRequest(self::CB_XML . $date, 5)->getString();
-            $currencies = new SimpleXMLElement($response);
+        DB::transaction(function() use ($date) {
+            try {
+                $response = (new Curl())->makeRequest(self::CB_XML . $date, 5)->getString();
+                $currencies = new SimpleXMLElement($response);
 
-            foreach ($currencies as $currency) {
-                $charCode = ((array) $currency->CharCode)[0];
-                if (in_array($charCode, self::NECESSARY_CURRENCIES)) {
-                    Currency::create([
-                        'code' => $charCode,
-                        'course' => ((array) $currency->Value)[0],
-                    ]);
+                foreach ($currencies as $currency) {
+                    $charCode = ((array)$currency->CharCode)[0];
+                    if (in_array($charCode, self::NECESSARY_CURRENCIES)) {
+                        Currency::create([
+                            'code' => $charCode,
+                            'course' => ((array)$currency->Value)[0],
+                        ]);
+                    }
                 }
+            } catch (Exception $exception) {
+                logger()->error('Произошла ошибка при импорте валют: ' . $exception->getMessage());
             }
-        } catch (Exception $exception) {
-            logger()->error('Произошла ошибка при импорте валют: ' . $exception->getMessage());
-        }
+        });
     }
 }
