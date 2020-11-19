@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
  * Class Currency
  *
  * @package App\Models
+ *
+ * @property string $code Символьный код валюты
  */
 class Currency extends Model
 {

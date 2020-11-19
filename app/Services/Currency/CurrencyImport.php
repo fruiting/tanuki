@@ -5,6 +5,7 @@ namespace App\Services\Currency;
 use App\Models\Currency;
 use App\Services\Curl;
 use Exception;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use SimpleXMLElement;
 
@@ -43,14 +44,20 @@ class CurrencyImport
                 $response = (new Curl(self::CB_XML . $date, 5))->makeRequest();
                 $currencies = new SimpleXMLElement($response);
 
+                /** @var Collection|Currency[] $dbCurrencies Коллекция валют в бд */
+                $dbCurrencies = Currency::all();
+
                 foreach ($currencies as $currency) {
                     $charCode = ((array)$currency->CharCode)[0];
                     if (in_array($charCode, self::NECESSARY_CURRENCIES)) {
-                        $dbCurrency = Currency::where('code', $charCode)->first();
                         $fields = [
                             'code' => $charCode,
                             'course' => ((array)$currency->Value)[0],
                         ];
+
+                        $dbCurrency = $dbCurrencies->first(function (Currency $currency) use ($charCode) {
+                            return $currency->code === $charCode;
+                        });
 
                         if ($dbCurrency) {
                             Currency::update($fields);
