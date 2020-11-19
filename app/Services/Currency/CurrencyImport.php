@@ -46,10 +46,17 @@ class CurrencyImport
                 foreach ($currencies as $currency) {
                     $charCode = ((array)$currency->CharCode)[0];
                     if (in_array($charCode, self::NECESSARY_CURRENCIES)) {
-                        Currency::create([
+                        $dbCurrency = Currency::where('code', $charCode)->first();
+                        $fields = [
                             'code' => $charCode,
                             'course' => ((array)$currency->Value)[0],
-                        ]);
+                        ];
+
+                        if ($dbCurrency) {
+                            Currency::update($fields);
+                        } else {
+                            Currency::create($fields);
+                        }
                     }
                 }
             } catch (Exception $exception) {
