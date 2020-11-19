@@ -60,7 +60,7 @@ class CurrencyImport
                         });
 
                         if ($dbCurrency) {
-                            Currency::update($fields);
+                            $dbCurrency->update($fields);
                         } else {
                             Currency::create($fields);
                         }
