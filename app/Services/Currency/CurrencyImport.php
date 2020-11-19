@@ -40,7 +40,7 @@ class CurrencyImport
     {
         DB::transaction(function() use ($date) {
             try {
-                $response = (new Curl())->makeRequest(self::CB_XML . $date, 5)->getString();
+                $response = (new Curl(self::CB_XML . $date, 5))->makeRequest();
                 $currencies = new SimpleXMLElement($response);
 
                 foreach ($currencies as $currency) {

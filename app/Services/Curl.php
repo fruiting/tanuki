@@ -12,44 +12,42 @@ use LogicException;
  */
 class Curl
 {
-    /** @var mixed $response Ответ, полученный через cURL */
-    private $response;
+    /** @var string $link Ссылка для подключения */
+    private $link;
+
+    /** @var int|null $timeout Таймаут для отключения в секундах */
+    private $timeout;
+
+    /**
+     * Curl constructor.
+     *
+     * @param string $link Ссылка для подключения
+     * @param int|null $timeout Таймаут для отключения в секундах
+     */
+    public function __construct(string $link, int $timeout = null)
+    {
+        $this->link = $link;
+        $this->timeout = $timeout;
+    }
 
     /**
      * Реализует запрос
      *
-     * @param string $link Ссылка для подключения
-     * @param int|null $timeout Таймаут для отключения в секундах
-     *
-     * @return self
+     * @return mixed
      */
-    public function makeRequest(string $link, int $timeout = null): self
+    public function makeRequest()
     {
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $link);
+        curl_setopt($ch, CURLOPT_URL, $this->link);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        if ($timeout) {
-            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        if ($this->timeout) {
+            curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
         }
 
-        $this->response = curl_exec($ch);
+        $response = curl_exec($ch);
         curl_close($ch);
 
-        return $this;
-    }
-
-    /**
-     * Возвращает ответ в виде строки
-     *
-     * @return string
-     */
-    public function getString(): string
-    {
-        if (is_string($this->response)) {
-            return $this->response;
-        } else {
-            throw new LogicException('Ответ должен быть в виде строки');
-        }
+        return $response;
     }
 }
